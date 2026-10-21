@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
 import { dashboard } from '@/routes';
@@ -43,6 +43,15 @@ const games = ref(props.games.data);
 
 useEcho<{ game: { id: number } }>('lobby', 'GameJoined', (event) => {
     games.value = games.value.filter((game) => game.id !== event.game.id);
+
+    if (games.value.length < 5) {
+        router.reload({
+            only: ['games'],
+            onSuccess: () => {
+                games.value = props.games.data;
+            }
+        });
+    }
 });
 
 </script>
