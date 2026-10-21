@@ -2,7 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
 import { dashboard } from '@/routes';
-import { store } from '@/routes/games';
+import { store, show, join } from '@/routes/games';
 
 defineOptions({
     layout: {
@@ -14,6 +14,27 @@ defineOptions({
         ],
     },
 });
+
+defineProps<{
+    games: {
+        data: Array<{
+            id: number;
+            player_one_id: number;
+            player_two_id: number | null;
+            player_one: {
+                name: string;
+            };
+            player_two: {
+                name: string;
+            } | null;
+        }>;
+        links: Array<{
+            url: string | null;
+            label: string;
+            active: boolean;
+        }>;
+    };
+}>();
 </script>
 
 <template>
@@ -26,7 +47,32 @@ defineOptions({
             <div
                 class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
             >
-                <PlaceholderPattern />
+                <ul>
+                    <li
+                        v-for="game in games.data"
+                        :key="game.id"
+                        class="flex items-center justify-between gap-2 border-b border-sidebar-border/70 px-4 py-2 last:border-b-0 dark:border-sidebar-border"
+                    >
+                        <Link
+                            :href="show(game.id)"
+                            class="text-sm font-medium text-sidebar-text/70"
+                        >
+                            {{ game.player_one.name }} vs {{ game.player_two ? game.player_two.name : 'Waiting for player' }}
+                        </Link>
+                        <span
+                            class="rounded-full bg-accent px-2 py-1 text-xs font-medium text-accent-foreground"
+                        >
+                            <Link
+                                v-if="!game.player_two"
+                                :href="join(game.id)"
+                                method="post"
+                                class="text-sm font-medium text-sidebar-text/70"
+                            >
+                                Join Game
+                            </Link>
+                        </span>
+                    </li>
+                </ul>
             </div>
             <div
                 class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"

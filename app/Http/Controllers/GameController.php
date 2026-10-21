@@ -10,9 +10,14 @@ class GameController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        return inertia('Dashboard',[
+            'games' => Game::with(['playerOne', 'playerTwo'])
+                ->whereNull('player_two_id')
+                ->oldest()
+                ->simplePaginate(5)
+        ]);
     }
 
     /**
@@ -32,6 +37,18 @@ class GameController extends Controller
             'player_one_id' => $request->user()->id,
             'player_two_id' => null, // You can set this to a random user ID or leave it null for now
         ]);
+
+        return to_route('games.show', $game);
+    }
+
+    public function join(Game $game, Request $request)
+    {
+        if ($game->player_two_id) {
+            return redirect()->back()->with('error', 'This game already has two players.');
+        }
+
+        $game->player_two_id = $request->user()->id;
+        $game->save();
 
         return to_route('games.show', $game);
     }

@@ -6,8 +6,9 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
-    Route::resource('games', GameController::class)->only([ 'store', 'show']);
+    Route::redirect('/dashboard', '/games')->name('dashboard');
+    Route::resource('games', GameController::class)->only([ 'index','store', 'show']);
+    Route::post('games/{game}/join', [GameController::class, 'join'])->name('games.join');
 });
 
 require __DIR__.'/settings.php';
