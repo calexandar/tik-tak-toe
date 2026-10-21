@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
 import { dashboard } from '@/routes';
+import { store } from '@/routes/games';
 
 defineOptions({
     layout: {
@@ -41,7 +42,13 @@ defineOptions({
         <div
             class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
         >
-            <PlaceholderPattern />
+            <Link
+                :href="store()"
+                method="post"
+                class="absolute inset-0 flex items-center justify-center text-sm font-medium text-sidebar-text/70"
+            >
+                Create a new game
+            </Link>
         </div>
     </div>
 </template>
