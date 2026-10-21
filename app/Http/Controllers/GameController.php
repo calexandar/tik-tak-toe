@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 
 class GameController extends Controller
@@ -15,6 +16,7 @@ class GameController extends Controller
         return inertia('Dashboard',[
             'games' => Game::with(['playerOne', 'playerTwo'])
                 ->whereNull('player_two_id')
+                ->where('player_one_id', '!=', $request->user()->id)
                 ->oldest()
                 ->simplePaginate(5)
         ]);
@@ -43,6 +45,9 @@ class GameController extends Controller
 
     public function join(Game $game, Request $request)
     {
+
+        Gate::authorize('join', $game);
+
         if ($game->player_two_id) {
             return redirect()->back()->with('error', 'This game already has two players.');
         }
