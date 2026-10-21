@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\GameJoined;
 use App\Models\Game;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class GameController extends Controller
 {
@@ -54,6 +55,8 @@ class GameController extends Controller
 
         $game->player_two_id = $request->user()->id;
         $game->save();
+
+        GameJoined::dispatch($game);
 
         return to_route('games.show', $game);
     }

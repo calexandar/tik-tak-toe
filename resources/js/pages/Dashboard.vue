@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { useEcho } from '@laravel/echo-vue';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
 import { dashboard } from '@/routes';
 import { store, show, join } from '@/routes/games';
+import { ref } from 'vue';
+
 
 defineOptions({
     layout: {
@@ -15,7 +18,7 @@ defineOptions({
     },
 });
 
-defineProps<{
+const props = defineProps<{
     games: {
         data: Array<{
             id: number;
@@ -35,6 +38,13 @@ defineProps<{
         }>;
     };
 }>();
+
+const games = ref(props.games.data);
+
+useEcho<{ game: { id: number } }>('lobby', 'GameJoined', (event) => {
+    games.value = games.value.filter((game) => game.id !== event.game.id);
+});
+
 </script>
 
 <template>
@@ -49,7 +59,7 @@ defineProps<{
             >
                 <ul>
                     <li
-                        v-for="game in games.data"
+                        v-for="game in games"
                         :key="game.id"
                         class="flex items-center justify-between gap-2 border-b border-sidebar-border/70 px-4 py-2 last:border-b-0 dark:border-sidebar-border"
                     >
