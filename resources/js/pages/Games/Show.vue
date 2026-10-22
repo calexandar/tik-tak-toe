@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AuthSimpleLayout from '@/layouts/auth/AuthSimpleLayout.vue';
+import { ref } from 'vue';
 
 defineProps<{
     game: {
@@ -15,20 +16,17 @@ defineProps<{
     };
 }>();
 
+const boardState = ref<[-1,0,0,0,1,0,0,0,0]>([-1, 0, 0, 0, 1, 0, 0, 0, 0]);
+
 </script>
 
 <template>
     <AuthSimpleLayout>
-        <template #header>
-            <h1 class="text-2xl font-semibold text-sidebar-text">
-                Game
-            </h1>
-        </template>
-
-        <template #default>
-            <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-<h1>{{ game }}</h1>
-            </div>
-        </template>
+        <menu class="grid grid-cols-3 gap-1.5 w-0 min-w-fit">
+            <li v-for="square in boardState" class="bg-gray-300 text-black size-32 grid place-items-center">
+                <button v-if="square === 0" class="place-self-stretch bg-gray-200 hover:bg-gray-300 transition-colors"></button>
+                <span v-else v-text="square === -1 ? 'X' : 'O'" class="text-4xl font-bold"></span>
+            </li>
+        </menu>
     </AuthSimpleLayout>
 </template>
