@@ -22,8 +22,37 @@ const xTurn = computed(() => {
    return boardState.value.reduce((carry, value) => carry + value, 0) === 0;
 });
 
+const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+];
+
 const fillSquare = (index: number) => {
         boardState.value[index] = xTurn.value ? -1 : 1; // Example: Fill with player one's mark
+
+       const winingLines = lines.map((line) => line.reduce((carry, index) => carry + boardState.value[index], 0))
+            .find((sum) => Math.abs(sum) === 3);
+            
+            if (winingLines === -3) {
+                alert('Player One Wins!');
+                return;
+            } 
+            
+            if (winingLines === 3) {
+                alert('Player Two Wins!');
+                return;
+            }
+
+            if (! boardState.value.includes(0)) {
+                alert('Draw!');
+                return;
+            }
 
 };
 
