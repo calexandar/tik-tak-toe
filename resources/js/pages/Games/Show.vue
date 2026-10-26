@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AuthSimpleLayout from '@/layouts/auth/AuthSimpleLayout.vue';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useEchoPresence } from '@laravel/echo-vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { update } from '@/routes/games';
@@ -48,6 +48,41 @@ const lines = [
     [2, 4, 6]
 ];
 
+interface User {
+  id: number;
+  name: string;
+  // add other user properties here
+}
+
+const channel = useEchoPresence(`game.${props.game.id}`).channel();
+
+channel.here((users: User[]) => {
+    players.value = users;
+});
+
+channel.joining((user: User) => {
+    router.reload({
+        onSuccess: () => players.value.push(user)
+    });
+});
+
+channel.leaving((user: User) => {
+    players.value = players.value.filter((u) => u.id !== user.id);
+});
+
+channel.listenForWhisper('PlayerMadeMove', ({ state }: { state: number[] }) => {
+    boardState.value = state;
+    checkForWinner();
+});
+
+const updateGameState = () => {
+        router.put(update(props.game.id), {
+        state: boardState.value
+    });
+
+    channel.whisper('PlayerMadeMove', { state: boardState.value });
+};
+
 const fillSquare = (index: number) => {
         if (!yourTurn.value) {
             return;
@@ -55,10 +90,8 @@ const fillSquare = (index: number) => {
 
         boardState.value[index] = xTurn.value ? -1 : 1; // Example: Fill with player one's mark
 
-        router.put(update(props.game.id), {
-            state: boardState.value
-        });
 
+        updateGameState();
         checkForWinner();
 };
 
@@ -86,37 +119,16 @@ const checkForWinner = () => {
 const resetGame = () => {
     boardState.value = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    router.put(update(props.game.id), {
-        state: boardState.value
-    });
+    updateGameState();
    
 };
-interface User {
-  id: number;
-  name: string;
-  // add other user properties here
-}
 
-const channel = useEchoPresence(`game.${props.game.id}`).channel();
-
-channel.here((users: User[]) => {
-    players.value = users;
-});
-
-channel.joining((user: User) => {
-    router.reload({
-        onSuccess: () => players.value.push(user)
-    });
-});
-
-channel.leaving((user: User) => {
-    players.value = players.value.filter((u) => u.id !== user.id);
-});
-
-channel.listen('PlayerMadeMove', (event: { game: { state: number[] } }) => {
-    boardState.value = event.game.state;
+onMounted(() => {
     checkForWinner();
 });
+
+
+
 
 </script>
 
