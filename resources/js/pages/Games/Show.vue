@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import AuthSimpleLayout from '@/layouts/auth/AuthSimpleLayout.vue';
 import { ref, computed } from 'vue';
+import { useEchoPresence } from '@laravel/echo-vue';
+import { router } from '@inertiajs/vue3';
 
 const props =defineProps<{
     game: {
@@ -16,7 +18,8 @@ const props =defineProps<{
     };
 }>();
 
-const boardState = ref<[0,0,0,0,0,0,0,0,0]>([0, 0, 0, 0, 0, 0, 0, 0, 0]);
+const boardState = ref<number[]>([0, 0, 0, 0, 0, 0, 0, 0, 0]);
+const players = ref<User[]>([]);
 
 const xTurn = computed(() => {
    return boardState.value.reduce((carry, value) => carry + value, 0) === 0;
@@ -28,7 +31,7 @@ const lines = [
     [6, 7, 8],
     [0, 3, 6],
     [1, 4, 7],
-    [2, 5, 8],
+    [2, 5, 8],      
     [0, 4, 8],
     [2, 4, 6]
 ];
@@ -55,6 +58,27 @@ const fillSquare = (index: number) => {
             }
 
 };
+interface User {
+  id: number;
+  name: string;
+  // add other user properties here
+}
+
+const channel = useEchoPresence(`game.${props.game.id}`).channel();
+
+channel.here((users: User[]) => {
+    players.value = users;
+});
+
+channel.joining((user: User) => {
+    router.reload({
+        onSuccess: () => players.value.push(user)
+    });
+});
+
+channel.leaving((user: User) => {
+    players.value = players.value.filter((u) => u.id !== user.id);
+});
 
 </script>
 

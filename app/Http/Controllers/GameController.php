@@ -18,7 +18,7 @@ class GameController extends Controller
             'games' => Game::with(['playerOne', 'playerTwo'])
                 ->whereNull('player_two_id')
                 ->where('player_one_id', '!=', $request->user()->id)
-                ->oldest()
+                ->latest()
                 ->simplePaginate(5)
         ]);
     }
