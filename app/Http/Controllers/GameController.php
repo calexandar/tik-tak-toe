@@ -84,8 +84,14 @@ class GameController extends Controller
      */
     public function update(Request $request, Game $game)
     {
-        //
-    }
+        $data = $request->validate([
+            'state' => ['required', 'array', 'size:9'],
+            'state.*' => ['required', 'integer', 'between:-1,1'],
+        ]);
+
+        $game->update($data);
+
+        return to_route('games.show', $game);}
 
     /**
      * Remove the specified resource from storage.

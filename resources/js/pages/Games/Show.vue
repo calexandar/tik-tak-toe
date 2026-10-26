@@ -3,6 +3,7 @@ import AuthSimpleLayout from '@/layouts/auth/AuthSimpleLayout.vue';
 import { ref, computed } from 'vue';
 import { useEchoPresence } from '@laravel/echo-vue';
 import { router } from '@inertiajs/vue3';
+import { update } from '@/routes/games';
 
 const props =defineProps<{
     game: {
@@ -15,10 +16,11 @@ const props =defineProps<{
         player_two: {
             name: string;
         } | null;
+        state: number[] | null;
     };
 }>();
 
-const boardState = ref<number[]>([0, 0, 0, 0, 0, 0, 0, 0, 0]);
+const boardState = ref<number[] | null>(props.game.state || [0, 0, 0, 0, 0, 0, 0, 0, 0]);
 const players = ref<User[]>([]);
 
 const xTurn = computed(() => {
@@ -38,6 +40,10 @@ const lines = [
 
 const fillSquare = (index: number) => {
         boardState.value[index] = xTurn.value ? -1 : 1; // Example: Fill with player one's mark
+
+        router.put(update(props.game.id), {
+            state: boardState.value
+        });
 
        const winingLines = lines.map((line) => line.reduce((carry, index) => carry + boardState.value[index], 0))
             .find((sum) => Math.abs(sum) === 3);

@@ -7,7 +7,7 @@ Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('/dashboard', '/games')->name('dashboard');
-    Route::resource('games', GameController::class)->only([ 'index','store', 'show']);
+    Route::resource('games', GameController::class)->only([ 'index','store', 'show', 'update']);
     Route::post('games/{game}/join', [GameController::class, 'join'])->name('games.join');
 });
 
