@@ -95,12 +95,12 @@ channel.leaving((user: User) => {
             <li class="flex gap-2 items-center space-y-2">
                 <span class="p-1.5 bg-gray-200 font-bold rounded text-black">X</span>
                 <span>{{ game.player_one.name }}</span>
-                <span class="bg-red-500 size-2 rounded-full"></span>
+                <span :class="{'!bg-green-500' : players.find(({id}) => id === game.player_one_id)}" class="bg-red-500 size-2 rounded-full"></span>
             </li>
             <li v-if="game.player_two" class="flex gap-2 items-center">
                 <span class="p-1.5 bg-gray-200 font-bold rounded text-black">O</span>
                 <span>{{ game.player_two.name }}</span>
-                <span class="bg-red-500 size-2 rounded-full"></span>
+                <span :class="{'!bg-green-500' : players.find(({id}) => id === game.player_two_id)}" class="bg-red-500 size-2 rounded-full"></span>
             </li>
             <li v-else class="flex gap-2 items-center">
                 <span class="p-1.5 bg-gray-200 font-bold rounded text-black">O</span>
