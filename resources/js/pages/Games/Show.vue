@@ -2,7 +2,7 @@
 import AuthSimpleLayout from '@/layouts/auth/AuthSimpleLayout.vue';
 import { ref, computed } from 'vue';
 import { useEchoPresence } from '@laravel/echo-vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { update } from '@/routes/games';
 
 const props =defineProps<{
@@ -20,11 +20,21 @@ const props =defineProps<{
     };
 }>();
 
+const page = usePage();
+
 const boardState = ref<number[] | null>(props.game.state || [0, 0, 0, 0, 0, 0, 0, 0, 0]);
 const players = ref<User[]>([]);
 
 const xTurn = computed(() => {
    return boardState.value.reduce((carry, value) => carry + value, 0) === 0;
+});
+const yourTurn = computed(() => {
+
+    if (props.game.player_one_id === page.props.auth.user.id) {
+        return xTurn.value;
+    }
+
+    return !xTurn.value;
 });
 
 const lines = [
@@ -39,12 +49,20 @@ const lines = [
 ];
 
 const fillSquare = (index: number) => {
+        if (!yourTurn.value) {
+            return;
+        }
+
         boardState.value[index] = xTurn.value ? -1 : 1; // Example: Fill with player one's mark
 
         router.put(update(props.game.id), {
             state: boardState.value
         });
 
+        checkForWinner();
+};
+
+const checkForWinner = () => {
        const winingLines = lines.map((line) => line.reduce((carry, index) => carry + boardState.value[index], 0))
             .find((sum) => Math.abs(sum) === 3);
             
@@ -63,6 +81,15 @@ const fillSquare = (index: number) => {
                 return;
             }
 
+};
+
+const resetGame = () => {
+    boardState.value = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    router.put(update(props.game.id), {
+        state: boardState.value
+    });
+   
 };
 interface User {
   id: number;
@@ -86,6 +113,11 @@ channel.leaving((user: User) => {
     players.value = players.value.filter((u) => u.id !== user.id);
 });
 
+channel.listen('PlayerMadeMove', (event: { game: { state: number[] } }) => {
+    boardState.value = event.game.state;
+    checkForWinner();
+});
+
 </script>
 
 <template>
@@ -99,12 +131,12 @@ channel.leaving((user: User) => {
 
         <ul>
             <li class="flex gap-2 items-center space-y-2">
-                <span class="p-1.5 bg-gray-200 font-bold rounded text-black">X</span>
+                <span class="p-1.5 bg-gray-200 font-bold rounded text-black" :class="{'bg-green-500' : xTurn}">X</span>
                 <span>{{ game.player_one.name }}</span>
                 <span :class="{'!bg-green-500' : players.find(({id}) => id === game.player_one_id)}" class="bg-red-500 size-2 rounded-full"></span>
             </li>
             <li v-if="game.player_two" class="flex gap-2 items-center">
-                <span class="p-1.5 bg-gray-200 font-bold rounded text-black">O</span>
+                <span class="p-1.5 bg-gray-200 font-bold rounded text-black" :class="{'bg-green-500' : !xTurn}">O</span>
                 <span>{{ game.player_two.name }}</span>
                 <span :class="{'!bg-green-500' : players.find(({id}) => id === game.player_two_id)}" class="bg-red-500 size-2 rounded-full"></span>
             </li>
